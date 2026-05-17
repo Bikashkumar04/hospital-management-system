@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @ToString
@@ -33,7 +34,7 @@ public class Patient{
 
     private int age;
 
-    @ToString.Exclude
+//    @ToString.Exclude
     private LocalDate dateOfBirth;
 
     private String gender;
@@ -47,6 +48,13 @@ public class Patient{
 
     @Enumerated(EnumType.STRING)
     private BloodGroupType bloodGroup;
+
+    @OneToOne
+    @JoinColumn(name = "insurance_id", referencedColumnName = "id") //owning side of the relationship
+    private Insurance insurance;
+
+    @OneToMany(mappedBy = "patient")
+    private List<Appointment> appointment;
 
 
 }
