@@ -1,3 +1,5 @@
+TRUNCATE TABLE patient RESTART IDENTITY CASCADE;
+
 INSERT INTO patient (name, age, date_of_birth, gender, email, blood_group)
 VALUES ('John Doe', 30, '1993-01-01', 'Male', 'john@gmail.com', 'O_POSITIVE');
 
