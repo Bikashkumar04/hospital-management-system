@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -32,8 +33,6 @@ public class Patient{
     @Column( nullable = false)
     private String name;
 
-    private int age;
-
 //    @ToString.Exclude
     private LocalDate dateOfBirth;
 
@@ -49,12 +48,13 @@ public class Patient{
     @Enumerated(EnumType.STRING)
     private BloodGroupType bloodGroup;
 
-    @OneToOne
+    @OneToOne(cascade = {CascadeType.ALL} , orphanRemoval = false)
     @JoinColumn(name = "insurance_id", referencedColumnName = "id") //owning side of the relationship
     private Insurance insurance;
 
     @OneToMany(mappedBy = "patient")
-    private List<Appointment> appointment;
+    @ToString.Exclude
+    private List<Appointment> appointment =new ArrayList<>();
 
 
 }

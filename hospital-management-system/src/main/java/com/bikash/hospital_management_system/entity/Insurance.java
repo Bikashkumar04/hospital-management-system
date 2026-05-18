@@ -1,10 +1,7 @@
 package com.bikash.hospital_management_system.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.springframework.data.jpa.repository.Modifying;
 
@@ -15,6 +12,7 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Insurance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +25,7 @@ public class Insurance {
     private String policyNumber;
 
     @Column(nullable = false)
-    private String validityPeriod;
+    private LocalDate validityPeriod;
 
     @CreationTimestamp
     @Column(updatable = false, nullable = false)
@@ -36,7 +34,5 @@ public class Insurance {
 
     @OneToOne(mappedBy = "insurance") //inverse side of the relationship
     private Patient patient;
-
-
 
 }
