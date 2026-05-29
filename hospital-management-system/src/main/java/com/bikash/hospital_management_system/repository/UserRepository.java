@@ -1,4 +1,13 @@
 package com.bikash.hospital_management_system.repository;
 
-public interface UserRepository extends org.springframework.data.jpa.repository.JpaRepository<com.bikash.hospital_management_system.entity.User, java.lang.Long> {
+import com.bikash.hospital_management_system.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    Optional<User> findByUsername(String username);
+
+    boolean existsByUsername(String username);
 }

@@ -1,56 +1,86 @@
-package com.bikash.hospital_management_system.config;
+package com.bikash.hospital_management_system.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
-    private final PasswordEncoder passwordEncoder;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity){
-        httpSecurity
-                .authorizeHttpRequests(auth ->auth
-                        .requestMatchers("/patients/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/doctors/**").hasAllRoles("DOCTOR", "ADMIN")
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
+
+        http
+                .csrf(csrf -> csrf.disable())
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
                 )
 
-                .formLogin(Customizer.withDefaults());
+                .authorizeHttpRequests(auth -> auth
 
-        return httpSecurity.build();
+                        // Public APIs
+                        .requestMatchers("/auth/**")
+                        .permitAll()
+
+                        // Admin only
+                        .requestMatchers("/admin/**")
+                        .hasRole("ADMIN")
+
+                        // Doctor and Admin
+                        .requestMatchers("/doctors/**")
+                        .hasAnyRole("DOCTOR", "ADMIN")
+
+                        // Receptionist and Admin
+                        .requestMatchers("/appointments/**")
+                        .hasAnyRole("RECEPTIONIST", "ADMIN")
+
+                        // Patient Records
+                        .requestMatchers("/patients/**")
+                        .hasAnyRole(
+                                "DOCTOR",
+                                "RECEPTIONIST",
+                                "ADMIN"
+                        )
+
+                        .anyRequest()
+                        .authenticated()
+                )
+
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
+
+        return http.build();
     }
 
-//    @Bean
-//    public UserDetailsService userDetailsService(){
-//        UserDetails user1 = User.withUsername("admin")
-//                .password(passwordEncoder.encode("admin123"))
-//                .roles("ADMIN")
-//                .build();
-//
-//         UserDetails user2 = User.withUsername("doctor")
-//                .password(passwordEncoder.encode("doctor123"))
-//                .roles("DOCTOR")
-//                .build();
-//
-//         UserDetails user3 = User.withUsername("patient")
-//                .password(passwordEncoder.encode("patient123"))
-//                .roles("PATIENT")
-//                .build();
-//        return new InMemoryUserDetailsManager(user1, user2, user3);
-//    }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration configuration)
+            throws Exception {
 
-
+        return configuration.getAuthenticationManager();
+    }
 }
